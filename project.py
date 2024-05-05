@@ -37,7 +37,7 @@ def main():
 			
 # Menu Item 1
 def view_cities():
-	country = input("Entry Country: ")
+	country = input("\tEntry Country: ")
 	cursor = db.cursor()
 	sql = "select ci.name, ci.district, ci.population, co.name as country_name from city ci inner join country co on ci.countrycode = co.code where co.name like %s"
 
@@ -45,25 +45,31 @@ def view_cities():
 	cursor.execute(sql, values)
 	result = cursor.fetchall()
 	lines = 0
-	print("Name\tDistrict\tPopulation\tName")
  
 	# Print the results to the terminal
-	for x in result:
-		print(*x, sep ='\t')
-		lines = lines+1
-		if lines == 2:
-			print("-- Quit (q) --")
-			next = click.getchar()   # Gets a single character
-			lines = 0
-			if next == "q":
-				break
-			else:
-				continue	
+	if len(result) != 0:
+		print("Name\tDistrict\tPopulation\tName")
+		for result in result:
+			print(*result, sep ='\t')
+			lines = lines+1
+			if lines == 2:
+				print("-- Quit (q) --")
+				next = click.getchar()   # Gets a single character
+				lines = 0
+				if next == "q":
+					break
+				else:
+					continue	
+	else:
+		print(f"No countries exist like {country} - returning to the Main Menu")
+		time.sleep(3)
+		display_menu()
+
 		
 # Menu Item 2
 def update_population():
     result=""
-    city_id = int(input("Enter City ID: "))
+    city_id = input("\n\tEnter City ID: ")
     cursor = db.cursor()
     sql = "select id, name, countrycode, district, population, latitude, longitude from city where id = %s"
     values = (city_id,)
@@ -73,7 +79,7 @@ def update_population():
 	# Check if city id exists - ask for a new one if not
     while len(result) == 0:
         print("\nNo city found for ID = ", city_id)
-        city_id = int(input("\nEnter City ID: "))
+        city_id = input("\nEnter City ID: ")
         cursor = db.cursor()
         sql = "select id, name, countrycode, district, population, latitude, longitude from city where id = %s"
         values = (city_id,)
@@ -85,7 +91,7 @@ def update_population():
         print(tabulate(result, headers = heads))
         to_do = ""
         while to_do not in ("D", "d", "I", "i"):
-            to_do = input("[I]ncrease/[D]ecrease Population: ")
+            to_do = input("\t[I]ncrease/[D]ecrease Population: ")
             if to_do in "I, i":
                 symbol = "+"
                 #https://www.geeksforgeeks.org/what-does-s-mean-in-a-python-format-string/
@@ -96,9 +102,9 @@ def update_population():
             else: 
                 print("Invalid input, try Again...")
                 to_do=""
-        how_much = int(input("Enter Population "))
+        how_much = int(input("\tEnter Population: "))
         values = (how_much,city_id,)
-
+		
         cursor.execute(sql, values)
         db.commit()
 
@@ -117,8 +123,8 @@ def update_population():
 
 # Menu Item 3
 def add_person():
-	print("Adding Person")
-	id = int(input("\tID: "))
+	print("\nAdding Person")
+	id = input("\tID: ")
 	name = input("\tName: ")
 	age = input("\tAge: ")
 	salary = input("\tSalary: ")
@@ -133,7 +139,7 @@ def add_person():
 
 	# Check city id exists
 	cursor2 = db.cursor()
-	sql = "select * from person where city = %s"
+	sql = "select * from city where ID = %s"
 	values2 = (city_id,)
 	cursor2.execute(sql, values2)
 	result2 = cursor2.fetchall()
@@ -168,8 +174,8 @@ def add_person():
 def delete_person():
 	while True:
 		try:
-			print("Deleting Person")
-			id = input("Enter ID of person to delete: ")
+			print("\nDeleting Person")
+			id = input("\tEnter ID of person to delete: ")
 			cursor = db.cursor()
 			sql = "select * from hasvisitedcity where personid = %s"
 			values = (id,)
@@ -204,11 +210,11 @@ def delete_person():
 
 # Menu Item 5
 def view_by_pop():
-	print("View Countries by Population")
+	print("\nView Countries by Population")
 	to_do = ""
 	cursor = db.cursor()
 	while to_do not in (">", "<", "="):
-		to_do = input("Enter < > or =: ")
+		to_do = input("\tEnter < > or =: ")
 		if to_do == ">":
 			symbol = ">"
 			sql = "select code, name, continent, population from country where population > %s"
@@ -221,7 +227,7 @@ def view_by_pop():
 		else: 
 			print("Invalid choice, try Again...>, <, =")
 			to_do=""
-	pop = int(input("Enter Population "))
+	pop = int(input("\tEnter Population "))
 	values = (pop,)
 	cursor.execute(sql, values)
 	result = cursor.fetchall()
@@ -231,7 +237,7 @@ def view_by_pop():
 
 # Menu Item 6
 def view_twinned():
-	print ("Twinned Cities")
+	print ("\nTwinned Cities")
 	print ("--------------")
 	connect()
 	with driver.session() as session:
@@ -264,8 +270,8 @@ def get_results(tx):
 
 # Menu Item 7
 def twinned_with_dublin():
-	print("Twinning with Dublin")
-	city_to_twin = input("Enter ID of City to twin with Dublin : ")
+	print("\nTwinning with Dublin")
+	city_to_twin = input("\tEnter ID of City to twin with Dublin : ")
 	cursor = db.cursor()
 	# Check if the city exists in MySQL
 	sql = "select name from city where id = %s"
@@ -275,7 +281,7 @@ def twinned_with_dublin():
 	
 	while len(result) == 0:
 		print (f"Error: City ID: {city_to_twin} doesn't exist in MySQL Database.")
-		city_to_twin = input("Enter ID of City to twin with Dublin : ")
+		city_to_twin = input("\tEnter ID of City to twin with Dublin : ")
 		cursor = db.cursor()
 		sql = "select name from city where id = %s"
 		values = (city_to_twin,)
@@ -299,10 +305,10 @@ def twinned_with_dublin():
 				neo4j_exists = session.read_transaction(get_results3,{"cid":city_to_twin})
 				new_int=neo4j_exists[0]
 				if new_int != [1]:
-					print(f"Warning: {new_city[0]} does not exist in Neo4j Database")
+					#print(f"Warning: {new_city[0]} does not exist in Neo4j Database")
 					#print("Need to create New City in Neo4j and create the relationship")
 					session.write_transaction(create_city, {"name":new_city[0],"cid":city_to_twin})
-					print(f"{new_city[0]} created in neo4j")
+					print(f"{new_city[0]} now created in neo4j")
 					session.write_transaction(twin_city, {"name":new_city[0]})
 					print(f"Relationship created between {new_city[0]} and Dublin")
 					print("\nPress any key to continue")
