@@ -370,7 +370,6 @@ if __name__ == "__main__":
 	import os
 	import mysql.connector
 	from config import config as cfg
-	import mysql.connector
 	import time
 	# https://stackoverflow.com/questions/510357/how-to-read-a-single-character-from-the-user
 	import click
